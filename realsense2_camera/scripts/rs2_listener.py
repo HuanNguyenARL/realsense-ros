@@ -6,7 +6,7 @@ from sensor_msgs.msg import PointCloud2 as msg_PointCloud2
 import sensor_msgs.point_cloud2 as pc2
 from sensor_msgs.msg import Imu as msg_Imu
 import numpy as np
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge_customized import CvBridge, CvBridgeError
 import inspect
 import ctypes
 import struct

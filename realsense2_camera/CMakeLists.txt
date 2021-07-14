@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
     std_msgs
     std_srvs
     nodelet
-    cv_bridge
+    cv_bridge_customized
     image_transport
     tf
     ddynamic_reconfigure
@@ -89,7 +89,7 @@ catkin_package(
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS message_runtime roscpp sensor_msgs std_msgs
     nodelet
-    cv_bridge
+    cv_bridge_customized
     image_transport
     ddynamic_reconfigure
     nav_msgs

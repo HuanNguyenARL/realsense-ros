@@ -1,7 +1,7 @@
 import rospy
 from sensor_msgs.msg import Image as msg_Image
 from sensor_msgs.msg import CameraInfo
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge_customized import CvBridge, CvBridgeError
 import sys
 import os
 import numpy as np

@@ -3,7 +3,7 @@ import sys
 from rs2_listener import CWaitForMessage
 
 import rosbag
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge_customized import CvBridge, CvBridgeError
 import numpy as np
 import tf
 import itertools

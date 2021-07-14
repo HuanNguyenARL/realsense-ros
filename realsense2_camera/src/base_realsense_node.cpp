@@ -1207,7 +1207,7 @@ void BaseRealSenseNode::setupFilters()
         else if ((*s_iter) == "hole_filling")
         {
             ROS_INFO("Add Filter: hole_filling");
-            _filters.push_back(NamedFilter("hole_filling", std::make_shared<rs2::hole_filling_filter>()));
+            _filters.push_back(NamedFilter("hole_filling", std::make_shared<rs2::hole_filling_filter>(1))); // 0: fill from left, 1: farest_from_around
         }
         else if ((*s_iter) == "decimation")
         {
