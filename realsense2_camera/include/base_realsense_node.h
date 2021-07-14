@@ -13,6 +13,7 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/Imu.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <tf/transform_broadcaster.h>
 #include <tf2_ros/static_transform_broadcaster.h>
 #include <condition_variable>
@@ -285,8 +286,13 @@ namespace realsense2_camera
         std::map<stream_index_pair, ros::Publisher> _info_publisher;
         std::map<stream_index_pair, cv::Mat> _image;
         std::map<rs2_stream, std::string> _encoding;
+        ros::Publisher _odom_throttle_publisher;
+        ros::Publisher _transform_throttle_publisher;
 
         std::map<stream_index_pair, int> _seq;
+        int _throttle_odom_msg_seq = 0;
+        int _throttle_transform_msg_seq = 0;
+        int _freq_divide = 1;
         std::map<rs2_stream, int> _unit_step_size;
         std::map<stream_index_pair, sensor_msgs::CameraInfo> _camera_info;
         std::atomic_bool _is_initialized_time_base;

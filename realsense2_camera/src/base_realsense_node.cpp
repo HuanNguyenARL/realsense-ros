@@ -814,6 +814,7 @@ void BaseRealSenseNode::getParameters()
     _pnh.param("angular_velocity_cov", _angular_velocity_cov, static_cast<double>(0.01));
     _pnh.param("hold_back_imu_for_frames", _hold_back_imu_for_frames, HOLD_BACK_IMU_FOR_FRAMES);
     _pnh.param("publish_odom_tf", _publish_odom_tf, PUBLISH_ODOM_TF);
+    _pnh.param("freq_divide", _freq_divide, 1);
 }
 
 void BaseRealSenseNode::setupDevice()
@@ -1021,6 +1022,8 @@ void BaseRealSenseNode::setupPublishers()
     if (_enable[POSE])
     {
         _imu_publishers[POSE] = _node_handle.advertise<nav_msgs::Odometry>("odom/sample", 100);
+        _odom_throttle_publisher = _node_handle.advertise<nav_msgs::Odometry>("odom/sample_throttle", 100);
+        _transform_throttle_publisher = _node_handle.advertise<geometry_msgs::TransformStamped>("transform_stamped/sample_throttle", 100);        
     }
 
 
@@ -1568,7 +1571,21 @@ void BaseRealSenseNode::pose_callback(rs2::frame frame)
 
     if (_publish_odom_tf) br.sendTransform(msg);
 
-    if (0 != _imu_publishers[stream_index].getNumSubscribers())
+    if (0 != _transform_throttle_publisher.getNumSubscribers())
+    {
+        static int cnt = 0;
+        // publish throttled TransformStamped msg
+        cnt++;
+        if (cnt == _freq_divide)
+        {
+            _throttle_transform_msg_seq += 1;
+            msg.header.seq = _throttle_transform_msg_seq;
+            _transform_throttle_publisher.publish(msg);
+            cnt = 0;
+        }        
+    }
+
+    if ((0 != _imu_publishers[stream_index].getNumSubscribers()) || (0 != _odom_throttle_publisher.getNumSubscribers()) )
     {
         double cov_pose(_linear_accel_cov * pow(10, 3-(int)pose.tracker_confidence));
         double cov_twist(_angular_velocity_cov * pow(10, 1-(int)pose.tracker_confidence));
@@ -1594,11 +1611,12 @@ void BaseRealSenseNode::pose_callback(rs2::frame frame)
 
         nav_msgs::Odometry odom_msg;
         _seq[stream_index] += 1;
+        static int cnt = 0;
 
         odom_msg.header.frame_id = _odom_frame_id;
         odom_msg.child_frame_id = _frame_id[POSE];
         odom_msg.header.stamp = t;
-        odom_msg.header.seq = _seq[stream_index];
+
         odom_msg.pose.pose = pose_msg.pose;
         odom_msg.pose.covariance = {cov_pose, 0, 0, 0, 0, 0,
                                     0, cov_pose, 0, 0, 0, 0,
@@ -1614,6 +1632,18 @@ void BaseRealSenseNode::pose_callback(rs2::frame frame)
                                     0, 0, 0, cov_twist, 0, 0,
                                     0, 0, 0, 0, cov_twist, 0,
                                     0, 0, 0, 0, 0, cov_twist};
+       
+        // publish throttled odom msg
+        cnt++;
+        if (cnt == _freq_divide)
+        {
+            _throttle_odom_msg_seq += 1;
+            odom_msg.header.seq = _throttle_odom_msg_seq;
+            _odom_throttle_publisher.publish(odom_msg);
+            cnt = 0;
+        }
+
+        odom_msg.header.seq = _seq[stream_index];
         _imu_publishers[stream_index].publish(odom_msg);
         ROS_DEBUG("Publish %s stream", rs2_stream_to_string(frame.get_profile().stream_type()));
     }
